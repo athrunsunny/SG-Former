@@ -118,10 +118,10 @@ class Attention(nn.Module):
                 # global
                 q1 = self.q1(x).reshape(B, N, self.num_heads//2, C // self.num_heads).permute(0, 2, 1, 3) # [N 1 3136 32] # [N 2 784 32]
                 x_ = x.permute(0, 2, 1).reshape(B, C, H, W) # [N 64 56 56] # [N 128 28 28]
-                x_1 = self.sr(x_).reshape(B, C, -1).permute(0, 2, 1) # [N 49 64] sr --> conv2d(64, 64)
-                x_1 = self.act(self.norm(x_1)) # [N 49 64]
-                kv1 = self.kv1(x_1).reshape(B, -1, 2, self.num_heads//2, C // self.num_heads).permute(2, 0, 3, 1, 4) # [2 N 1 49 32]
-                k1, v1 = kv1[0], kv1[1] #B head N C [N 1 49 32]
+                x_1 = self.sr(x_).reshape(B, C, -1).permute(0, 2, 1) # [N 49 64] sr --> conv2d(64, 64) # [N 49 128] sr --> conv2d(128, 128)
+                x_1 = self.act(self.norm(x_1)) # [N 49 64] # [N 49 128]
+                kv1 = self.kv1(x_1).reshape(B, -1, 2, self.num_heads//2, C // self.num_heads).permute(2, 0, 3, 1, 4) # [2 N 1 49 32] # [2 N 2 49 32]
+                k1, v1 = kv1[0], kv1[1] #B head N C [N 1 49 32] [N 2 49 32]
 
                 attn1 = (q1 @ k1.transpose(-2, -1)) * self.scale #B head Nq Nkv [N 1 3136 49]
                 attn1 = attn1.softmax(dim=-1)
